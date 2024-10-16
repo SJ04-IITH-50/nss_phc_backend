@@ -1,13 +1,15 @@
-const express = require('express');
-const { loginUser } = require('../funtions/user');
+const express = require("express");
+const { loginUser } = require("../functions/user");
 
 const router = express.Router();
 
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required.' });
+    return res
+      .status(400)
+      .json({ message: "Email and password are required." });
   }
 
   const result = await loginUser(email, password);
@@ -17,12 +19,12 @@ router.post('/login', async (req, res) => {
   }
 
   res.status(200).json({
-    message: 'Login successful',
+    message: "Login successful",
     token: result.token,
     user: {
       name: result.name,
-      role: result.role
-    }
+      role: result.role,
+    },
   });
 });
 
