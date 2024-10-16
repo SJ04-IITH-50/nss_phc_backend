@@ -14,6 +14,8 @@ CREATE TABLE patients (
     OPid VARCHAR(50) UNIQUE NOT NULL,
     age INT CHECK (age > 0),
     gender gender_type NOT NULL,
-    aadhar_number CHAR(12) UNIQUE NOT NULL
+    aadhar_number CHAR(12) UNIQUE NOT NULL,
+    complaint TEXT,
+    medicines_prescribed TEXT
 );
 
