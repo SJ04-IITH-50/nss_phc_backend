@@ -26,6 +26,27 @@ const loginUser = async (email, password) => {
   }
 };
 
-module.exports = {
-  loginUser,
+const registerUser = async (email, password, role) => {
+  try {
+
+    const checkUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (checkUser.rows.length > 0) {
+      return { error: 'User already exists' };
+    }
+
+  
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const result = await pool.query(
+      'INSERT INTO users (email, password, role) VALUES ($1, $2, $3) RETURNING email, role',
+      [email, hashedPassword, role]
+    );
+
+    return { email: result.rows[0].email, role: result.rows[0].role };
+  } catch (err) {
+    console.error('Error registering user:', err);
+    return { error: 'Failed to register user' };
+  }
 };
+
+module.exports = { registerUser, loginUser };

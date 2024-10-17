@@ -1,35 +1,34 @@
-const jwt = require('jsonwebtoken');
-
-const JWT_SECRET = process.env.JWT_SECRET;
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
 
 const generateToken = (user) => {
   return jwt.sign(
     {
       name: user.name,
-      role: user.role
+      role: user.role,
     },
-    JWT_SECRET,
-    { expiresIn: '1h' } 
+    JWT_SECRET
   );
 };
-
+// console.log(JWT_SECRET)
 const verifyToken = (req, res, next) => {
-  const token = req.headers['authorization'];
-  
+  const token = req.headers["authorization"];
+
   if (!token) {
-    return res.status(403).json({ message: 'No token provided.' });
+    return res.status(403).json({ message: "No token provided." });
   }
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).json({ message: 'Failed to authenticate token.' });
+      return res.status(401).json({ message: "Failed to authenticate token." });
     }
-    req.user = decoded;  
+    req.user = decoded;
     next();
   });
 };
 
 module.exports = {
   generateToken,
-  verifyToken
+  verifyToken,
 };

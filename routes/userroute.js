@@ -1,5 +1,5 @@
 const express = require("express");
-const { loginUser } = require("../functions/user");
+const { loginUser,registerUser } = require("../functions/user");
 
 const router = express.Router();
 
@@ -27,5 +27,28 @@ router.post("/login", async (req, res) => {
     },
   });
 });
+router.post("/register", async (req, res) => {
+  const { email, password, role } = req.body;
 
+
+  if (!email || !password || !role) {
+    return res.status(400).json({ message: "Email, password, and role are required." });
+  }
+
+  
+  const result = await registerUser(email, password, role);
+
+
+  if (result.error) {
+    return res.status(400).json({ message: result.error });
+  }
+
+  res.status(201).json({
+    message: "User registered successfully",
+    user: {
+      email: result.email,
+      role: result.role,
+    },
+  });
+});
 module.exports = router;

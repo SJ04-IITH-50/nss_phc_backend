@@ -16,6 +16,7 @@ const addPatient = async (patientDetails, userRole) => {
     );
     return result.rows[0];
   } catch (err) {
+    console.log("the error is ", err);
     console.error(err);
     return { error: "Failed to add patient. Please check the details." };
   }
