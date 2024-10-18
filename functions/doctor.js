@@ -20,7 +20,7 @@ const getAllPatients = async (userRole) => {
 const getPatientById = async (patientId) => {
   try {
     const result = await pool.query(
-      "SELECT name, OPid, age FROM patients WHERE id = $1",
+      "SELECT name, OPid, age,gender FROM patients WHERE id = $1",
       [patientId]
     );
 
