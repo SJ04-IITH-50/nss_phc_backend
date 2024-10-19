@@ -16,6 +16,7 @@ CREATE TABLE patients (
     gender gender_type NOT NULL,
     aadhar_number CHAR(12) UNIQUE NOT NULL,
     complaint TEXT,
-    medicines_prescribed TEXT
+    medicines_prescribed TEXT,
+    is_prescribed BOOLEAN DEFAULT FALSE;
 );
 

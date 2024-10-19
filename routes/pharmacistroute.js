@@ -5,6 +5,7 @@ const {
   notifyPharmacistOfUpdatedPrescription,
 } = require("../functions/pharmacist");
 const { getPatientPrescription } = require("../functions/pharmacist");
+const pool = require("../config/dbconfig");
 const router = express.Router();
 
 router.get("/view-prescriptions", verifyToken, async (req, res) => {
@@ -40,11 +41,9 @@ router.get("/prescription/:id", verifyToken, async (req, res) => {
   const patientId = req.params.id;
 
   if (req.user.role !== "pharmacist") {
-    return res
-      .status(403)
-      .json({
-        message: "Unauthorized: Only pharmacists can view prescriptions.",
-      });
+    return res.status(403).json({
+      message: "Unauthorized: Only pharmacists can view prescriptions.",
+    });
   }
 
   const result = await getPatientPrescription(patientId, req.user.role);
@@ -57,5 +56,34 @@ router.get("/prescription/:id", verifyToken, async (req, res) => {
     message: "Prescription details retrieved successfully.",
     prescription: result.prescription,
   });
+});
+
+router.post("/mark-medicines-done/:id", verifyToken, async (req, res) => {
+  const patientId = req.params.id;
+
+  if (req.user.role !== "pharmacist") {
+    return res.status(403).json({
+      message: "Unauthorized: Only pharmacists can mark medicines as done.",
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      "UPDATE patients SET medicines_done = TRUE WHERE id = $1 RETURNING *",
+      [patientId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Patient not found." });
+    }
+
+    res.status(200).json({
+      message: "Medicines marked as done for the patient.",
+      patient: result.rows[0],
+    });
+  } catch (err) {
+    console.error("Error marking medicines as done:", err);
+    res.status(500).json({ message: "Failed to update the status." });
+  }
 });
 module.exports = router;

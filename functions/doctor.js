@@ -37,8 +37,8 @@ const getPatientById = async (patientId) => {
 const updatePatientDetails = async (patientId, complaint, medicines) => {
   try {
     const result = await pool.query(
-      "UPDATE patients SET complaint = $1, medicines_prescribed = $2 WHERE id = $3 RETURNING *",
-      [complaint, medicines, patientId]
+      "UPDATE patients SET complaint = $1, medicines_prescribed = $2, is_prescribed = $3 WHERE id = $4 RETURNING *",
+      [complaint, medicines, true, patientId]
     );
 
     if (result.rows.length === 0) {
@@ -51,6 +51,7 @@ const updatePatientDetails = async (patientId, complaint, medicines) => {
     return { error: "Failed to update patient details" };
   }
 };
+
 module.exports = {
   getAllPatients,
   notifyDoctorsOfNewPatient,
