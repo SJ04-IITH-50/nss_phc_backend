@@ -11,7 +11,7 @@ const getAllPrescriptions = async (userRole) => {
 
   try {
     const result = await pool.query(
-      "SELECT id, name, OPid, age, gender, medicines_prescribed FROM patients WHERE medicines_prescribed IS NOT NULL ORDER BY id DESC"
+      "SELECT id, name, OPid, age, gender, medicines_prescribed, medicines_done FROM patients WHERE medicines_prescribed IS NOT NULL ORDER BY id DESC"
     );
 
     return result.rows;
