@@ -28,4 +28,49 @@ CREATE TABLE patient_medicines (
     medicine_done BOOLEAN DEFAULT FALSE
 );
 
+-- The below table is created to generate OPID which adds the date with the serial number in that particular day
+CREATE TABLE daily_opid_counter (
+    op_date DATE PRIMARY KEY,
+    last_serial INT DEFAULT 0
+);
+
+
+CREATE OR REPLACE FUNCTION generate_opid() RETURNS TRIGGER AS $$
+DECLARE
+    current_date DATE := CURRENT_DATE;
+    serial_number INT;
+    formatted_serial TEXT;
+    new_opid TEXT;
+BEGIN
+
+    SELECT last_serial INTO serial_number
+    FROM daily_opid_counter
+    WHERE op_date = current_date;
+
+
+    IF NOT FOUND THEN
+        serial_number := 1;
+        INSERT INTO daily_opid_counter (op_date, last_serial) VALUES (current_date, 1);
+    ELSE
+        serial_number := serial_number + 1;
+        UPDATE daily_opid_counter SET last_serial = serial_number WHERE op_date = current_date;
+    END IF;
+
+  
+    formatted_serial := LPAD(serial_number::TEXT, 3, '0'); 
+    new_opid := TO_CHAR(current_date, 'DD-MM-YYYY') || '-' || formatted_serial;
+
+
+    NEW.opid := new_opid;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to auto-generate OPID on patient insert
+CREATE TRIGGER auto_generate_opid
+BEFORE INSERT ON patients
+FOR EACH ROW
+EXECUTE FUNCTION generate_opid();
+
 
