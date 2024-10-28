@@ -36,6 +36,7 @@ const getPatientById = async (patientId) => {
 };
 const updatePatientDetails = async (patientId, complaint, medicines) => {
   try {
+    // Update the patient's details in the `patients` table
     const result = await pool.query(
       "UPDATE patients SET complaint = $1, medicines_prescribed = $2, is_prescribed = $3 WHERE id = $4 RETURNING *",
       [complaint, medicines, true, patientId]
@@ -45,12 +46,27 @@ const updatePatientDetails = async (patientId, complaint, medicines) => {
       return { error: "Patient not found" };
     }
 
+    // Clear out existing medicines for this patient in `patient_medicines`
+    await pool.query("DELETE FROM patient_medicines WHERE patient_id = $1", [
+      patientId,
+    ]);
+
+    // Insert each new medicine for the patient (assuming medicines is an array)
+    for (const medicine of medicines) {
+      await pool.query(
+        "INSERT INTO patient_medicines (patient_id, medicine_name, medicine_done) VALUES ($1, $2, $3)",
+        [patientId, medicine, false]
+      );
+    }
+
     return { patient: result.rows[0] };
   } catch (err) {
     console.error("Error updating patient details:", err);
     return { error: "Failed to update patient details" };
   }
 };
+
+
 
 module.exports = {
   getAllPatients,

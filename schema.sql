@@ -21,3 +21,11 @@ CREATE TABLE patients (
     medicines_done BOOLEAN DEFAULT FALSE
 );
 
+CREATE TABLE patient_medicines (
+    id SERIAL PRIMARY KEY,
+    patient_id INT REFERENCES patients(id) ON DELETE CASCADE,
+    medicine_name VARCHAR(255) NOT NULL,
+    medicine_done BOOLEAN DEFAULT FALSE
+);
+
+

@@ -3,6 +3,8 @@ const { verifyToken } = require("../middleware/jwt");
 const { getAllPrescriptions } = require("../functions/pharmacist");
 const {
   notifyPharmacistOfUpdatedPrescription,
+  getMedicinesByPatientId,
+  updateMedicineStatus,markPrescriptionAsDone,
 } = require("../functions/pharmacist");
 const { getPatientPrescription } = require("../functions/pharmacist");
 const pool = require("../config/dbconfig");
@@ -86,4 +88,61 @@ router.post("/mark-medicines-done/:id", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Failed to update the status." });
   }
 });
+
+router.get("/prescription/:id/medicines", verifyToken, async (req, res) => {
+  const patientId = req.params.id;
+
+  if (req.user.role !== "pharmacist") {
+    return res.status(403).json({ message: "Unauthorized." });
+  }
+
+  const result = await getMedicinesByPatientId(patientId);
+
+  if (result.error) {
+    return res.status(500).json({ message: result.error });
+  }
+
+  res.status(200).json({ medicines: result });
+});
+
+router.post("/medicine/:id/done", verifyToken, async (req, res) => {
+  const medicineId = req.params.id;
+  const { done } = req.body;
+
+  if (req.user.role !== "pharmacist") {
+    return res.status(403).json({ message: "Unauthorized." });
+  }
+
+  const result = await updateMedicineStatus(medicineId, done);
+
+  if (result.error) {
+    return res.status(404).json({ message: result.error });
+  }
+
+  res
+    .status(200)
+    .json({
+      message: "Medicine status updated successfully.",
+      medicine: result.medicine,
+    });
+});
+
+router.post("/prescription/:id/mark-done", verifyToken, async (req, res) => {
+  const prescriptionId = req.params.id;
+
+  if (req.user.role !== "pharmacist") {
+    return res.status(403).json({ message: "Unauthorized access." });
+  }
+
+  const result = await markPrescriptionAsDone(prescriptionId);
+
+  if (result.error) {
+    return res.status(500).json({ message: result.error });
+  }
+
+  res
+    .status(200)
+    .json({ message: "Prescription marked as done successfully." });
+});
+
 module.exports = router;
