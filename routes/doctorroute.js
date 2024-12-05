@@ -6,7 +6,9 @@ const { notifyPharmacistOfUpdatedPrescription } = require("../functions/pharmaci
 const router = express.Router();
 
 router.get("/view-patients", verifyToken, async (req, res) => {
-  const result = await getAllPatients(req.user.role);
+  const hospitalId = req.user.hospital_id;
+
+  const result = await getAllPatients(req.user.role, hospitalId);
 
   if (result.error) {
     return res.status(403).json({ message: result.error });
@@ -20,6 +22,7 @@ router.get("/view-patients", verifyToken, async (req, res) => {
 
 router.get("/patient/:id", verifyToken, async (req, res) => {
   const patientId = req.params.id;
+  const hospitalId = req.user.hospital_id;
 
   if (req.user.role !== "doctor") {
     return res.status(403).json({
@@ -27,7 +30,7 @@ router.get("/patient/:id", verifyToken, async (req, res) => {
     });
   }
 
-  const result = await getPatientById(patientId);
+  const result = await getPatientById(patientId, hospitalId);
 
   if (result.error) {
     return res.status(404).json({ message: result.error });
@@ -39,10 +42,10 @@ router.get("/patient/:id", verifyToken, async (req, res) => {
   });
 });
 
-
 router.post("/patient/update/:id", verifyToken, async (req, res) => {
   const patientId = req.params.id;
   const { complaint, medicines } = req.body;
+  const hospitalId = req.user.hospital_id;
 
   if (req.user.role !== "doctor") {
     return res
@@ -50,12 +53,11 @@ router.post("/patient/update/:id", verifyToken, async (req, res) => {
       .json({ message: "Unauthorized: Only doctors can update patient details." });
   }
 
-  const result = await updatePatientDetails(patientId, complaint, medicines);
+  const result = await updatePatientDetails(patientId, complaint, medicines, hospitalId);
 
   if (result.error) {
     return res.status(404).json({ message: result.error });
   }
-
 
   const io = req.app.get("io");
   notifyPharmacistOfUpdatedPrescription(io, result.patient);
