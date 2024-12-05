@@ -4,14 +4,15 @@ const notifyPharmacistOfUpdatedPrescription = (io, patientDetails) => {
   io.emit("updatedPrescription", patientDetails);
 };
 
-const getAllPrescriptions = async (userRole) => {
+const getAllPrescriptions = async (userRole, hospitalId) => {
   if (userRole !== "pharmacist") {
     return { error: "Unauthorized: Only pharmacists can view prescriptions." };
   }
 
   try {
     const result = await pool.query(
-      "SELECT id, name, OPid, age, gender, medicines_prescribed, medicines_done FROM patients WHERE medicines_prescribed IS NOT NULL ORDER BY id DESC"
+      "SELECT id, name, OPid, age, gender, medicines_prescribed, medicines_done FROM patients WHERE hospital_id = $1 AND medicines_prescribed IS NOT NULL ORDER BY id DESC",
+      [hospitalId]
     );
 
     return result.rows;
@@ -20,15 +21,17 @@ const getAllPrescriptions = async (userRole) => {
     return { error: "Failed to retrieve prescriptions." };
   }
 };
-const getPatientPrescription = async (patientId, userRole) => {
+
+// Get a patient's prescription (hospital-specific)
+const getPatientPrescription = async (patientId, userRole, hospitalId) => {
   if (userRole !== "pharmacist") {
     return { error: "Unauthorized: Only pharmacists can view prescriptions." };
   }
 
   try {
     const result = await pool.query(
-      "SELECT name, OPid, age, gender, complaint, medicines_prescribed FROM patients WHERE id = $1 AND medicines_prescribed IS NOT NULL",
-      [patientId]
+      "SELECT name, OPid, age, gender, complaint, medicines_prescribed FROM patients WHERE id = $1 AND hospital_id = $2 AND medicines_prescribed IS NOT NULL",
+      [patientId, hospitalId]
     );
 
     if (result.rows.length === 0) {
@@ -44,11 +47,12 @@ const getPatientPrescription = async (patientId, userRole) => {
   }
 };
 
-const getMedicinesByPatientId = async (patientId) => {
+// Get medicines for a patient (hospital-specific)
+const getMedicinesByPatientId = async (patientId, hospitalId) => {
   try {
     const result = await pool.query(
-      "SELECT id, medicine_name, medicine_done FROM patient_medicines WHERE patient_id = $1",
-      [patientId]
+      "SELECT id, medicine_name, medicine_done FROM patient_medicines WHERE patient_id = $1 AND hospital_id = $2",
+      [patientId, hospitalId]
     );
     return result.rows;
   } catch (err) {
@@ -56,11 +60,13 @@ const getMedicinesByPatientId = async (patientId) => {
     return { error: "Failed to retrieve medicines." };
   }
 };
-const updateMedicineStatus = async (medicineId, doneStatus) => {
+
+// Update medicine status
+const updateMedicineStatus = async (medicineId, doneStatus, hospitalId) => {
   try {
     const result = await pool.query(
-      "UPDATE patient_medicines SET medicine_done = $1 WHERE id = $2 RETURNING *",
-      [doneStatus, medicineId]
+      "UPDATE patient_medicines SET medicine_done = $1 WHERE id = $2 AND hospital_id = $3 RETURNING *",
+      [doneStatus, medicineId, hospitalId]
     );
 
     if (result.rows.length === 0) {
@@ -74,13 +80,17 @@ const updateMedicineStatus = async (medicineId, doneStatus) => {
   }
 };
 
-const markPrescriptionAsDone = async (prescriptionId) => {
+// Mark a prescription as done (hospital-specific)
+const markPrescriptionAsDone = async (prescriptionId, hospitalId) => {
   try {
-    // Update the `medicines_done` field in the `patients` table or `patient_medicines` table
-    await pool.query(
-      "UPDATE patients SET medicines_done = $1 WHERE id = $2",
-      [true, prescriptionId]
+    const result = await pool.query(
+      "UPDATE patients SET medicines_done = TRUE WHERE id = $1 AND hospital_id = $2 RETURNING *",
+      [prescriptionId, hospitalId]
     );
+
+    if (result.rows.length === 0) {
+      return { error: "Prescription not found." };
+    }
 
     return { success: true };
   } catch (err) {

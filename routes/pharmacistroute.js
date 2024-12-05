@@ -4,14 +4,15 @@ const { getAllPrescriptions } = require("../functions/pharmacist");
 const {
   notifyPharmacistOfUpdatedPrescription,
   getMedicinesByPatientId,
-  updateMedicineStatus,markPrescriptionAsDone,
+  updateMedicineStatus,
+  markPrescriptionAsDone,
 } = require("../functions/pharmacist");
 const { getPatientPrescription } = require("../functions/pharmacist");
 const pool = require("../config/dbconfig");
 const router = express.Router();
 
 router.get("/view-prescriptions", verifyToken, async (req, res) => {
-  const result = await getAllPrescriptions(req.user.role);
+  const result = await getAllPrescriptions(req.user.role, req.user.hospital_id);
 
   if (result.error) {
     return res.status(403).json({ message: result.error });
@@ -22,6 +23,7 @@ router.get("/view-prescriptions", verifyToken, async (req, res) => {
     prescriptions: result,
   });
 });
+
 
 router.post("/notify-updated-prescription", verifyToken, (req, res) => {
   if (req.user.role !== "doctor") {
@@ -48,7 +50,7 @@ router.get("/prescription/:id", verifyToken, async (req, res) => {
     });
   }
 
-  const result = await getPatientPrescription(patientId, req.user.role);
+  const result = await getPatientPrescription(patientId, req.user.role, req.user.hospital_id);
 
   if (result.error) {
     return res.status(404).json({ message: result.error });
@@ -69,24 +71,15 @@ router.post("/mark-medicines-done/:id", verifyToken, async (req, res) => {
     });
   }
 
-  try {
-    const result = await pool.query(
-      "UPDATE patients SET medicines_done = TRUE WHERE id = $1 RETURNING *",
-      [patientId]
-    );
+  const result = await markPrescriptionAsDone(patientId, req.user.hospital_id);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Patient not found." });
-    }
-
-    res.status(200).json({
-      message: "Medicines marked as done for the patient.",
-      patient: result.rows[0],
-    });
-  } catch (err) {
-    console.error("Error marking medicines as done:", err);
-    res.status(500).json({ message: "Failed to update the status." });
+  if (result.error) {
+    return res.status(500).json({ message: result.error });
   }
+
+  res.status(200).json({
+    message: "Medicines marked as done for the patient.",
+  });
 });
 
 router.get("/prescription/:id/medicines", verifyToken, async (req, res) => {
@@ -96,7 +89,7 @@ router.get("/prescription/:id/medicines", verifyToken, async (req, res) => {
     return res.status(403).json({ message: "Unauthorized." });
   }
 
-  const result = await getMedicinesByPatientId(patientId);
+  const result = await getMedicinesByPatientId(patientId, req.user.hospital_id);
 
   if (result.error) {
     return res.status(500).json({ message: result.error });
@@ -113,18 +106,20 @@ router.post("/medicine/:id/done", verifyToken, async (req, res) => {
     return res.status(403).json({ message: "Unauthorized." });
   }
 
-  const result = await updateMedicineStatus(medicineId, done);
+  const result = await updateMedicineStatus(
+    medicineId,
+    done,
+    req.user.hospital_id
+  );
 
   if (result.error) {
     return res.status(404).json({ message: result.error });
   }
 
-  res
-    .status(200)
-    .json({
-      message: "Medicine status updated successfully.",
-      medicine: result.medicine,
-    });
+  res.status(200).json({
+    message: "Medicine status updated successfully.",
+    medicine: result.medicine,
+  });
 });
 
 router.post("/prescription/:id/mark-done", verifyToken, async (req, res) => {
