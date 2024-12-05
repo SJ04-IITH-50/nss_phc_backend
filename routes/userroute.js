@@ -4,51 +4,48 @@ const { loginUser,registerUser } = require("../functions/user");
 const router = express.Router();
 
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, hospitalId } = req.body;
 
-  if (!email || !password) {
+  // Validate inputs
+  if (!email || !password || !hospitalId) {
     return res
       .status(400)
-      .json({ message: "Email and password are required." });
+      .json({ message: "Email, password, and hospital ID are required." });
   }
 
-  const result = await loginUser(email, password);
+  const result = await loginUser(email, password, hospitalId);
 
   if (result.error) {
     return res.status(401).json({ message: result.error });
   }
 
+  // Send successful response
   res.status(200).json({
     message: "Login successful",
     token: result.token,
     user: {
       name: result.name,
       role: result.role,
+      hospital_id: hospitalId, // Pass hospital ID for client-side use
     },
   });
 });
+
+
 router.post("/register", async (req, res) => {
-  const { email, password, role } = req.body;
+  const {  email, password, role, hospitalId } = req.body;
 
-
-  if (!email || !password || !role) {
-    return res.status(400).json({ message: "Email, password, and role are required." });
+  if ( !email || !password || !role || !hospitalId) {
+    return res.status(400).json({ message: "All fields are required." });
   }
 
-  
-  const result = await registerUser(email, password, role);
-
+  const result = await registerUser({  email, password, role, hospitalId });
 
   if (result.error) {
-    return res.status(400).json({ message: result.error });
+    return res.status(500).json({ message: result.error });
   }
 
-  res.status(201).json({
-    message: "User registered successfully",
-    user: {
-      email: result.email,
-      role: result.role,
-    },
-  });
+  res.status(201).json({ message: "Signup successful!", user: result });
 });
+
 module.exports = router;

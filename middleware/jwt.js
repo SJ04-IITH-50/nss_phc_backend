@@ -7,6 +7,7 @@ const generateToken = (user) => {
     {
       name: user.name,
       role: user.role,
+      hospital_id: user.hospital_id,
     },
     JWT_SECRET
   );
