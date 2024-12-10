@@ -38,7 +38,7 @@ const registerUser = async ({ email, password, role, hospitalId }) => {
 
     const result = await pool.query(
       "INSERT INTO users ( email, password, role, hospital_id) VALUES ($1, $2, $3, $4) RETURNING *",
-      [ email, hashedPassword, role, hospitalId]
+      [email, hashedPassword, role, hospitalId]
     );
 
     return result.rows[0];
@@ -47,6 +47,5 @@ const registerUser = async ({ email, password, role, hospitalId }) => {
     return { error: "Signup failed. Please try again." };
   }
 };
-
 
 module.exports = { registerUser, loginUser };

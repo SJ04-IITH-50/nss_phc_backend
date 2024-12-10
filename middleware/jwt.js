@@ -12,7 +12,7 @@ const generateToken = (user) => {
     JWT_SECRET
   );
 };
-// console.log(JWT_SECRET)
+
 const verifyToken = (req, res, next) => {
   const token = req.headers["authorization"];
 

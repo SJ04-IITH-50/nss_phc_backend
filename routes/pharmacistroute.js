@@ -24,7 +24,6 @@ router.get("/view-prescriptions", verifyToken, async (req, res) => {
   });
 });
 
-
 router.post("/notify-updated-prescription", verifyToken, (req, res) => {
   if (req.user.role !== "doctor") {
     return res.status(403).json({
@@ -50,7 +49,11 @@ router.get("/prescription/:id", verifyToken, async (req, res) => {
     });
   }
 
-  const result = await getPatientPrescription(patientId, req.user.role, req.user.hospital_id);
+  const result = await getPatientPrescription(
+    patientId,
+    req.user.role,
+    req.user.hospital_id
+  );
 
   if (result.error) {
     return res.status(404).json({ message: result.error });

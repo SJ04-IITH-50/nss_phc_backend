@@ -22,7 +22,6 @@ const getAllPrescriptions = async (userRole, hospitalId) => {
   }
 };
 
-// Get a patient's prescription (hospital-specific)
 const getPatientPrescription = async (patientId, userRole, hospitalId) => {
   if (userRole !== "pharmacist") {
     return { error: "Unauthorized: Only pharmacists can view prescriptions." };
@@ -47,7 +46,6 @@ const getPatientPrescription = async (patientId, userRole, hospitalId) => {
   }
 };
 
-// Get medicines for a patient (hospital-specific)
 const getMedicinesByPatientId = async (patientId, hospitalId) => {
   try {
     const result = await pool.query(
@@ -61,7 +59,6 @@ const getMedicinesByPatientId = async (patientId, hospitalId) => {
   }
 };
 
-// Update medicine status
 const updateMedicineStatus = async (medicineId, doneStatus, hospitalId) => {
   try {
     const result = await pool.query(
@@ -80,7 +77,6 @@ const updateMedicineStatus = async (medicineId, doneStatus, hospitalId) => {
   }
 };
 
-// Mark a prescription as done (hospital-specific)
 const markPrescriptionAsDone = async (prescriptionId, hospitalId) => {
   try {
     const result = await pool.query(
@@ -98,7 +94,6 @@ const markPrescriptionAsDone = async (prescriptionId, hospitalId) => {
     return { error: "Failed to update prescription status." };
   }
 };
-
 
 module.exports = {
   notifyPharmacistOfUpdatedPrescription,

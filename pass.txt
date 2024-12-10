@@ -1,0 +1,15 @@
+{
+  "email": "doctor@gmail.com",
+  "password": "doctor1",
+  "role": "doctor"
+}
+
+{
+"email":"receptionist@gmail.com",
+"password":"receptionist1"
+}
+
+{
+"email":"pharma@gmail.com",
+"password":"pharma1"
+}

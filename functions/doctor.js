@@ -39,7 +39,12 @@ const getPatientById = async (patientId, hospitalId) => {
   }
 };
 
-const updatePatientDetails = async (patientId, complaint, medicines, hospitalId) => {
+const updatePatientDetails = async (
+  patientId,
+  complaint,
+  medicines,
+  hospitalId
+) => {
   try {
     const result = await pool.query(
       "UPDATE patients SET complaint = $1, medicines_prescribed = $2, is_prescribed = $3 WHERE id = $4 AND hospital_id = $5 RETURNING *",
@@ -50,12 +55,15 @@ const updatePatientDetails = async (patientId, complaint, medicines, hospitalId)
       return { error: "Patient not found" };
     }
 
-    await pool.query("DELETE FROM patient_medicines WHERE patient_id = $1", [patientId]);
+    await pool.query(
+      "DELETE FROM patient_medicines WHERE patient_id = $1 AND hospital_id = $2",
+      [patientId, hospitalId]
+    );
 
     for (const medicine of medicines) {
       await pool.query(
-        "INSERT INTO patient_medicines (patient_id, medicine_name, medicine_done) VALUES ($1, $2, $3)",
-        [patientId, medicine, false]
+        "INSERT INTO patient_medicines (patient_id, medicine_name, medicine_done, hospital_id) VALUES ($1, $2, $3, $4)",
+        [patientId, medicine, false, hospitalId]
       );
     }
 
@@ -65,7 +73,6 @@ const updatePatientDetails = async (patientId, complaint, medicines, hospitalId)
     return { error: "Failed to update patient details" };
   }
 };
-
 
 module.exports = {
   getAllPatients,

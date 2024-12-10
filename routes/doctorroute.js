@@ -2,7 +2,9 @@ const express = require("express");
 const { verifyToken } = require("../middleware/jwt");
 const { getAllPatients } = require("../functions/doctor");
 const { getPatientById, updatePatientDetails } = require("../functions/doctor");
-const { notifyPharmacistOfUpdatedPrescription } = require("../functions/pharmacist");
+const {
+  notifyPharmacistOfUpdatedPrescription,
+} = require("../functions/pharmacist");
 const router = express.Router();
 
 router.get("/view-patients", verifyToken, async (req, res) => {
@@ -50,10 +52,17 @@ router.post("/patient/update/:id", verifyToken, async (req, res) => {
   if (req.user.role !== "doctor") {
     return res
       .status(403)
-      .json({ message: "Unauthorized: Only doctors can update patient details." });
+      .json({
+        message: "Unauthorized: Only doctors can update patient details.",
+      });
   }
 
-  const result = await updatePatientDetails(patientId, complaint, medicines, hospitalId);
+  const result = await updatePatientDetails(
+    patientId,
+    complaint,
+    medicines,
+    hospitalId
+  );
 
   if (result.error) {
     return res.status(404).json({ message: result.error });

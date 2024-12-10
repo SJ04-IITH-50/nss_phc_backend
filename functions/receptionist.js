@@ -19,7 +19,6 @@ const addPatient = async (patientDetails, userRole) => {
   }
 };
 
-
 module.exports = {
   addPatient,
 };
