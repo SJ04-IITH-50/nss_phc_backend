@@ -1,6 +1,7 @@
 require("dotenv").config();
 const { Pool } = require("pg");
 
+
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -12,19 +13,24 @@ const pool = new Pool({
   },
 });
 
+
 pool.connect((err, client, release) => {
   if (err) {
-    console.error("Error acquiring client", err.stack);
-    process.exit(1);
+    console.error("Error acquiring client:", err.stack);
+
+    return;
   }
+
   client.query("SELECT NOW()", (err, result) => {
     release();
     if (err) {
-      console.error("Error executing query", err.stack);
+      console.error("Error executing query:", err.stack);
+      return;
     } else {
       console.log("PostgreSQL connected:", result.rows);
     }
   });
 });
+
 
 module.exports = pool;
