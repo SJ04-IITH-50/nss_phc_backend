@@ -1,19 +1,18 @@
 {
   "name": "phc-backend",
   "version": "1.0.0",
-  "description": "backend for PHC web app",
+  "description": "Backend for PHC web app",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
-    "build": "npm run build",
-    "start": "node index.js"
+    "build": "npm install"
   },
   "engines": {
-    "node": ">=14.x",
+    "node": ">=14.x <=20.x",
     "npm": ">=6.x"
-},
-
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
