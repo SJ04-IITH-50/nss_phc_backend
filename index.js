@@ -11,19 +11,23 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://nss-phc-frontend.onrender.com/",
+    origin: "https://nss-phc-frontend.onrender.com",
     methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   },
 });
 
 const PORT = process.env.PORT;
-app.use(cors());
+app.use(cors({
+  origin: "https://nss-phc-frontend.onrender.com",
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+}));
+
 app.use(bodyParser.json());
-
 app.set("io", io);
-
 app.use("/api/receptionist", receptionistRoutes);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/pharmacist", pharmacistRoute);
